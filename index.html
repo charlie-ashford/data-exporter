@@ -285,9 +285,8 @@
       }
 
       async function fetchVideoStats(videoId) {
-        const response = await fetch(
-          `http://api.communitrics.com/stats/video/${videoId}`
-        );
+        const protocol = window.location.protocol; 
+        const response = await fetch(`${protocol}//api.communitrics.com/stats/video/${videoId}`);
         if (!response.ok) {
           throw new Error("Failed to fetch video stats");
         }
@@ -296,9 +295,8 @@
       }
 
       async function fetchChannelStats(handle) {
-        const response = await fetch(
-          `http://api.communitrics.com/stats/channel/${handle}`
-        );
+        const protocol = window.location.protocol; 
+        const response = await fetch(`${protocol}//api.communitrics.com/stats/channel/${handle}`);
         if (!response.ok) {
           throw new Error("Failed to fetch channel stats");
         }
