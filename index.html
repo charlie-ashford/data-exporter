@@ -658,7 +658,7 @@
                   filteredData
                     .map(
                       (e) =>
-                        `${e.date},${e.subscriberCount},${e.viewCount},${e.videoCount}`
+                        `${new Date(e.insertedAt).toISOString()},${e.subscriberCount},${e.viewCount},${e.videoCount}`
                     )
                     .join("\n");
                 const encodedUri = encodeURI(csvContent);
