@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Channel + Video Data Exporter</title>
+    <link
+      rel="icon"
+      href="https://yt3.ggpht.com/eg_5N8cvTJjQMnu4wvVoUy4ES2t0HbuFitpQBJJk24M4CQLfV5aps1qy9BCvhNUGUea5i4Vk=s800-c-k-c0x00ffffff-no-rj"
+      type="image/png"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <style>
+      :root {
+        --primary-color: #ff4136;
+        --secondary-color: #ff6347;
+        --background-color: #1a1a1a;
+        --text-color: #f0f0f0;
+        --card-background: #2a2a2a;
+        --input-background: #333333;
+        --input-text: #f0f0f0;
+        --chart-title-color: #f0f0f0;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+      }
+
+      header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 1.8rem;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+      }
+
+      .card {
+        background-color: var(--card-background);
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .tabs {
+        display: flex;
+        margin-bottom: 2rem;
+        background-color: var(--card-background);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .tab {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .tab.active {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      h2 {
+        color: var(--secondary-color);
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+        margin-top: 0;
+        font-size: 1.8rem;
+      }
+
+      form {
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 1rem;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 0.8rem;
+        border: 1px solid #444444;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: "Poppins", sans-serif;
+        background-color: var(--input-background);
+        color: var(--input-text);
+      }
+
+      button {
+        padding: 0.8rem 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+        font-family: "Poppins", sans-serif;
+      }
+
+      button:hover {
+        background-color: var(--secondary-color);
+      }
+
+      .chart-container {
+        margin-bottom: 3rem;
+        min-height: 400px;
+      }
+
+      .button-container {
+        text-align: right;
+      }
+
+      .download-csv {
+        display: inline-block;
+        margin-top: 1rem;
+        background-color: var(--secondary-color);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+        font-family: "Poppins", sans-serif;
+      }
+
+      .download-csv:hover {
+        background-color: var(--primary-color);
+      }
+
+      .error-message {
+        color: var(--primary-color);
+        font-weight: bold;
+        margin-top: 1rem;
+      }
+
+      .loader {
+        border: 5px solid #333333;
+        border-top: 5px solid var(--primary-color);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 2rem auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>Channel + Video Data Exporter</header>
+    <div class="container">
+      <div class="tabs">
+        <div class="tab active" data-tab="video">Video Analytics</div>
+        <div class="tab" data-tab="channel">Channel Analytics</div>
+      </div>
+
+      <div id="video-tab" class="tab-content active">
+        <div class="card">
+          <h2>Video Analytics</h2>
+          <form id="video-search-form">
+            <input
+              type="text"
+              id="videoId"
+              placeholder="Enter Video ID"
+              required
+            />
+            <button type="submit">Get Data</button>
+          </form>
+          <div class="button-container">
+            <button
+              id="download-video-csv"
+              class="download-csv"
+              style="display: none"
+            >
+              Download Video Data (CSV)
+            </button>
+          </div>
+          <div id="video-error" class="error-message"></div>
+          <div id="video-loader" class="loader" style="display: none"></div>
+        </div>
+        <div id="video-views-container" class="chart-container card"></div>
+        <div id="video-likes-container" class="chart-container card"></div>
+        <div id="video-comments-container" class="chart-container card"></div>
+      </div>
+
+      <div id="channel-tab" class="tab-content">
+        <div class="card">
+          <h2>Channel Analytics</h2>
+          <form id="channel-search-form">
+            <input
+              type="text"
+              id="channelHandle"
+              placeholder="Enter Channel Handle"
+              required
+            />
+            <button type="submit">Get Data</button>
+          </form>
+          <div class="button-container">
+            <button
+              id="download-channel-csv"
+              class="download-csv"
+              style="display: none"
+            >
+              Download Channel Data (CSV)
+            </button>
+          </div>
+          <div id="channel-error" class="error-message"></div>
+          <div id="channel-loader" class="loader" style="display: none"></div>
+        </div>
+        <div id="channel-subs-container" class="chart-container card"></div>
+        <div id="channel-views-container" class="chart-container card"></div>
+        <div id="channel-videos-container" class="chart-container card"></div>
+      </div>
+    </div>
+
+    <script>
+      function showLoader(id) {
+        document.getElementById(id).style.display = "block";
+      }
+
+      function hideLoader(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
+      function showError(id, message) {
+        const errorElement = document.getElementById(id);
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+      }
+
+      function hideError(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
+      function showElement(id) {
+        document.getElementById(id).style.display = "block";
+      }
+
+      function hideElement(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
+      async function fetchVideoStats(videoId) {
+        const response = await fetch(
+          `http://api.communitrics.com/stats/video/${videoId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch video stats");
+        }
+        const result = await response.json();
+        return result;
+      }
+
+      async function fetchChannelStats(handle) {
+        const response = await fetch(
+          `http://api.communitrics.com/stats/channel/${handle}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch channel stats");
+        }
+        const result = await response.json();
+        return result;
+      }
+
+      function createChart(container, title, categories, series) {
+        Highcharts.chart(container, {
+          chart: {
+            type: "area",
+            zoomType: "x",
+            style: {
+              fontFamily: "Poppins, sans-serif",
+            },
+            animation: {
+              duration: 500,
+            },
+            backgroundColor: getComputedStyle(document.documentElement)
+              .getPropertyValue("--card-background")
+              .trim(),
+            events: {
+              selection: function (event) {
+                const yAxis = this.yAxis[0];
+                if (event.resetSelection) {
+                  const minValue = Math.min(
+                    ...series[0].data.filter((d) => d > 0)
+                  );
+                  yAxis.update({ min: minValue });
+                } else {
+                  const pointsInRange =
+                    event.xAxis[0].axis.series[0].points.filter(
+                      (p) =>
+                        p.x >= event.xAxis[0].min && p.x <= event.xAxis[0].max
+                    );
+                  const minInRange = Math.min(
+                    ...pointsInRange.map((p) => p.y).filter((d) => d > 0)
+                  );
+                  yAxis.update({ min: minInRange });
+                }
+              },
+            },
+          },
+          resetZoomButton: {
+            theme: {
+              fill: "#2a2a2a",
+              stroke: "#ff4136",
+              r: 8,
+              style: {
+                color: "#f0f0f0",
+              },
+              states: {
+                hover: {
+                  fill: "#3a3a3a",
+                  style: {
+                    color: "#ff4136",
+                  },
+                },
+              },
+            },
+            position: {
+              align: "right",
+              verticalAlign: "top",
+              x: -10,
+              y: 10,
+            },
+            relativeTo: "chart",
+          },
+          title: {
+            text: title,
+            style: {
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              color: getComputedStyle(document.documentElement)
+                .getPropertyValue("--chart-title-color")
+                .trim(),
+            },
+          },
+          xAxis: {
+            categories: categories,
+            type: "datetime",
+            startOnTick: false,
+            endOnTick: false,
+            minRange: 1,
+            labels: {
+              formatter: function () {
+                return Highcharts.dateFormat("%Y-%m-%d %H:%M", this.value);
+              },
+              style: {
+                fontSize: "0.7rem",
+                color: getComputedStyle(document.documentElement)
+                  .getPropertyValue("--text-color")
+                  .trim(),
+              },
+            },
+            lineColor: "#444444",
+            tickColor: "#444444",
+          },
+          yAxis: {
+            title: {
+              text: series[0].name,
+              style: {
+                fontSize: "0.7rem",
+                fontWeight: "bold",
+                color: getComputedStyle(document.documentElement)
+                  .getPropertyValue("--text-color")
+                  .trim(),
+              },
+            },
+            min: Math.min(...series[0].data.filter((d) => d > 0)),
+            labels: {
+              formatter: function () {
+                return new Intl.NumberFormat().format(this.value);
+              },
+              style: {
+                fontSize: "0.8rem",
+                color: getComputedStyle(document.documentElement)
+                  .getPropertyValue("--text-color")
+                  .trim(),
+              },
+            },
+            gridLineColor: "#444444",
+          },
+          legend: {
+            enabled: false,
+          },
+          plotOptions: {
+            area: {
+              fillColor: {
+                linearGradient: {
+                  x1: 0,
+                  y1: 0,
+                  x2: 0,
+                  y2: 1,
+                },
+                stops: [
+                  [0, Highcharts.color("#ff4136").setOpacity(0.5).get("rgba")],
+                  [1, Highcharts.color("#ff4136").setOpacity(0).get("rgba")],
+                ],
+              },
+              marker: {
+                radius: 2,
+                fillColor: "#ff4136",
+              },
+              lineWidth: 1,
+              lineColor: "#ff4136",
+              states: {
+                hover: {
+                  lineWidth: 1,
+                },
+              },
+              threshold: null,
+            },
+          },
+          series: [
+            {
+              name: series[0].name,
+              data: series[0].data,
+              connectNulls: true,
+            },
+          ],
+          tooltip: {
+            backgroundColor: "rgba(40, 40, 40, 0.9)",
+            borderColor: "#ff4136",
+            borderRadius: 8,
+            style: {
+              fontSize: "0.9rem",
+              color: getComputedStyle(document.documentElement)
+                .getPropertyValue("--text-color")
+                .trim(),
+            },
+            formatter: function () {
+              return (
+                "<b>" +
+                Highcharts.dateFormat("%Y-%m-%d %H:%M", this.x) +
+                "</b><br/>" +
+                this.series.name +
+                ": " +
+                new Intl.NumberFormat().format(this.y)
+              );
+            },
+          },
+          credits: {
+            enabled: false,
+          },
+        });
+      }
+
+      function processVideoData(data) {
+        const filteredData = data.filter(
+          (entry) =>
+            entry.viewCount > 0 || entry.likeCount > 0 || entry.commentCount > 0
+        );
+        const dates = filteredData.map((entry) =>
+          new Date(entry.insertedAt).getTime()
+        );
+        const views = filteredData.map((entry) =>
+          entry.viewCount > 0 ? entry.viewCount : null
+        );
+        const likes = filteredData.map((entry) =>
+          entry.likeCount > 0 ? entry.likeCount : null
+        );
+        const comments = filteredData.map((entry) =>
+          entry.commentCount > 0 ? entry.commentCount : null
+        );
+
+        let lastNonZeroLike = 0;
+        let lastNonZeroComment = 0;
+
+        for (let i = 0; i < filteredData.length; i++) {
+          if (filteredData[i].likeCount === 0 && lastNonZeroLike !== 0) {
+            filteredData[i].likeCount = lastNonZeroLike;
+          } else {
+            lastNonZeroLike = filteredData[i].likeCount;
+          }
+
+          if (filteredData[i].commentCount === 0 && lastNonZeroComment !== 0) {
+            filteredData[i].commentCount = lastNonZeroComment;
+          } else {
+            lastNonZeroComment = filteredData[i].commentCount;
+          }
+        }
+
+        return { dates, views, likes, comments, filteredData };
+      }
+
+      function processChannelData(data) {
+        const filteredData = data.filter(
+          (entry) =>
+            entry.subscriberCount > 0 ||
+            entry.viewCount > 0 ||
+            entry.videoCount > 0
+        );
+        const dates = filteredData.map((entry) =>
+          new Date(entry.insertedAt).getTime()
+        );
+        const subs = filteredData.map((entry) =>
+          entry.subscriberCount > 0 ? entry.subscriberCount : null
+        );
+        const views = filteredData.map((entry) =>
+          entry.viewCount > 0 ? entry.viewCount : null
+        );
+        const videos = filteredData.map((entry) =>
+          entry.videoCount > 0 ? entry.videoCount : null
+        );
+
+        return { dates, subs, views, videos, filteredData };
+      }
+
+      document
+        .getElementById("video-search-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const videoId = document.getElementById("videoId").value;
+          hideError("video-error");
+          showLoader("video-loader");
+          hideElement("download-video-csv");
+
+          try {
+            const newUrl = `${window.location.origin}${window.location.pathname}?video=${videoId}`;
+            window.history.pushState({ path: newUrl }, "", newUrl);
+            const data = await fetchVideoStats(videoId);
+            const { dates, views, likes, comments, filteredData } =
+              processVideoData(data);
+
+            createChart(
+              "video-views-container",
+              "Video Views Over Time",
+              dates,
+              [{ name: "Views", data: views }]
+            );
+            createChart(
+              "video-likes-container",
+              "Video Likes Over Time",
+              dates,
+              [{ name: "Likes", data: likes }]
+            );
+            createChart(
+              "video-comments-container",
+              "Video Comments Over Time",
+              dates,
+              [{ name: "Comments", data: comments }]
+            );
+
+            showElement("download-video-csv");
+            document.getElementById("download-video-csv").onclick =
+              function () {
+                const csvContent =
+                  "data:text/csv;charset=utf-8," +
+                  "Date,Views,Likes,Comments\n" +
+                  filteredData
+                    .map(
+                      (e) =>
+                        `${new Date(e.insertedAt).toISOString()},${
+                          e.viewCount
+                        },${e.likeCount},${e.commentCount}`
+                    )
+                    .join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "video_stats.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              };
+          } catch (error) {
+            showError("video-error", error.message);
+          } finally {
+            hideLoader("video-loader");
+          }
+        });
+
+      document
+        .getElementById("channel-search-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const handle = document.getElementById("channelHandle").value;
+          hideError("channel-error");
+          showLoader("channel-loader");
+          hideElement("download-channel-csv");
+
+          try {
+            const newUrl = `${window.location.origin}${window.location.pathname}?channel=${handle}`;
+            window.history.pushState({ path: newUrl }, "", newUrl);
+            const data = await fetchChannelStats(handle);
+            const { dates, subs, views, videos, filteredData } =
+              processChannelData(data);
+
+            createChart(
+              "channel-subs-container",
+              "Channel Subscribers Over Time",
+              dates,
+              [{ name: "Subscribers", data: subs }]
+            );
+            createChart(
+              "channel-views-container",
+              "Channel Views Over Time",
+              dates,
+              [{ name: "Views", data: views }]
+            );
+            createChart(
+              "channel-videos-container",
+              "Channel Videos Over Time",
+              dates,
+              [{ name: "Videos", data: videos }]
+            );
+
+            showElement("download-channel-csv");
+            document.getElementById("download-channel-csv").onclick =
+              function () {
+                const csvContent =
+                  "data:text/csv;charset=utf-8," +
+                  "Date,Subscribers,Views,Videos\n" +
+                  filteredData
+                    .map(
+                      (e) =>
+                        `${e.date},${e.subscriberCount},${e.viewCount},${e.videoCount}`
+                    )
+                    .join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "channel_stats.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              };
+          } catch (error) {
+            showError("channel-error", error.message);
+          } finally {
+            hideLoader("channel-loader");
+          }
+        });
+
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      function activateTabBasedOnQuery() {
+        const videoId = getQueryParam("video");
+        const channelHandle = getQueryParam("channel");
+
+        if (videoId) {
+          document.querySelector('[data-tab="video"]').classList.add("active");
+          document.querySelector("#video-tab").classList.add("active");
+          document
+            .querySelector('[data-tab="channel"]')
+            .classList.remove("active");
+          document.querySelector("#channel-tab").classList.remove("active");
+          document.getElementById("videoId").value = videoId;
+
+          document
+            .getElementById("video-search-form")
+            .dispatchEvent(new Event("submit"));
+        } else if (channelHandle) {
+          document
+            .querySelector('[data-tab="channel"]')
+            .classList.add("active");
+          document.querySelector("#channel-tab").classList.add("active");
+          document
+            .querySelector('[data-tab="video"]')
+            .classList.remove("active");
+          document.querySelector("#video-tab").classList.remove("active");
+          document.getElementById("channelHandle").value = channelHandle;
+
+          document
+            .getElementById("channel-search-form")
+            .dispatchEvent(new Event("submit"));
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", activateTabBasedOnQuery);
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          document
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((content) => content.classList.remove("active"));
+
+          this.classList.add("active");
+          document
+            .getElementById(`${this.dataset.tab}-tab`)
+            .classList.add("active");
+        });
+      });
+    </script>
+  </body>
+</html>
